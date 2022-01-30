@@ -9,10 +9,8 @@ def registerUser(req):
     reqBody = json.loads(req.body)
     username = reqBody['username']
     password = reqBody['password']
-    email = reqBody['email']
-    phone = reqBody['phone']
     dob = reqBody['dob']
-    add = reqBody['address']
+    ctzn = reqBody['ctzn_id']
 
     if (User.objects.filter(username=username).exists()):
         return JsonResponse({
@@ -20,15 +18,15 @@ def registerUser(req):
             "payload": {}
         }, safe=False)
 
-    if (User.objects.filter(email=email).exists()):
+    if (Profile.objects.filter(Citizenship_Number=ctzn).exists()):
         return JsonResponse({
-            "message": "email_already_exists",
+            "message": "citizenship_num_already_exists",
             "payload": {}
         }, safe=False)
 
     try:
-        usr = User.objects.create_user(username=username, email=email, password=password)
-        pro = Profile(username=usr, Phone_Number=phone, Address=add, DOB=dob)
+        usr = User.objects.create_user(username=username, email='', password=password)
+        pro = Profile(username=usr, DOB=dob,Citizenship_Number=ctzn)
         pro.save()
         Profile.refresh_from_db(pro)
 
@@ -61,9 +59,12 @@ def loginUser(req):
 
     if user is not None:
         login(req, user)
+
         return JsonResponse({
             "message": "logged_in",
-            "payload": {}
+            "payload": {
+
+            }
         }, safe=False)
 
     else:

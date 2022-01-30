@@ -10,8 +10,6 @@ def readData():
     data_loc += "/dataset.csv"
     return pd.read_csv(data_loc)
 
-
-
 def encodeData(covid):
     e=LabelEncoder()
     covid['Breathing Problem']=e.fit_transform(covid['Breathing Problem'])
