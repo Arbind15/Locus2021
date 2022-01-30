@@ -3,8 +3,9 @@ import json
 from django.http import HttpResponse, JsonResponse
 from .models import Profile, hospitalProfile
 from django.contrib.auth import login, authenticate, logout
+from django.views.decorators.csrf import csrf_exempt
 
-
+@csrf_exempt
 def registerUser(req):
     reqBody = json.loads(req.body)
     username = reqBody['username']
@@ -26,7 +27,7 @@ def registerUser(req):
 
     try:
         usr = User.objects.create_user(username=username, email='', password=password)
-        pro = Profile(username=usr, DOB=dob,Citizenship_Number=ctzn)
+        pro = Profile(username=usr, DOB=dob, Citizenship_Number=ctzn)
         pro.save()
         Profile.refresh_from_db(pro)
 
@@ -43,14 +44,13 @@ def registerUser(req):
             }
         }, safe=False)
 
-
+@csrf_exempt
 def loginUser(req):
     reqBody = json.loads(req.body)
     username = reqBody['username']
     password = reqBody['password']
 
     user = authenticate(username=username, password=password)
-
 
     if user is not None:
         if not (Profile.objects.filter(username=user).exists()):
@@ -61,7 +61,7 @@ def loginUser(req):
 
         login(req, user)
 
-        pro=Profile.objects.get(username=user)
+        pro = Profile.objects.get(username=user)
 
         return JsonResponse({
             "message": "logged_in",
