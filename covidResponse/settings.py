@@ -29,7 +29,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'covid_detection',
-    'authentication'
+    'authentication',
+    'scheduler',
+    'messenger',
+    'hospital_manager'
 ]
 
 MIDDLEWARE = [

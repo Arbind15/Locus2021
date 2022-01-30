@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import json
 from django.http import HttpResponse, JsonResponse
-from .models import Profile,hospitalProfile
+from .models import Profile, hospitalProfile
 from django.contrib.auth import login, authenticate, logout
 
 
@@ -16,12 +16,14 @@ def registerUser(req):
 
     if (User.objects.filter(username=username).exists()):
         return JsonResponse({
-            "status": "user_already_exists"
+            "message": "username_already_exists",
+            "payload": {}
         }, safe=False)
 
     if (User.objects.filter(email=email).exists()):
         return JsonResponse({
-            "status": "email_already_exists"
+            "message": "email_already_exists",
+            "payload": {}
         }, safe=False)
 
     try:
@@ -31,13 +33,16 @@ def registerUser(req):
         Profile.refresh_from_db(pro)
 
         return JsonResponse({
-            "status": "profile_saved",
+            "message": "profile_saved",
+            "payload": {}
         }, safe=False)
 
     except Exception as e:
         return JsonResponse({
-            "status": "something_went_wrong",
-            "Error": str(e)
+            "message": "something_went_wrong",
+            "payload": {
+                "Error": str(e)
+            }
         }, safe=False)
 
 
@@ -50,18 +55,21 @@ def loginUser(req):
 
     if not (Profile.objects.filter(username=user).exists()):
         return JsonResponse({
-            "status": "Insufficient Permission"
+            "message": "Insufficient Permission",
+            "payload": {}
         }, safe=False)
 
     if user is not None:
         login(req, user)
         return JsonResponse({
-            "status": "logged_in"
+            "message": "logged_in",
+            "payload": {}
         }, safe=False)
 
     else:
         return JsonResponse({
-            "status": "something_went_wrong"
+            "message": "username_does_not_exists",
+            "payload": {}
         }, safe=False)
 
 
@@ -70,11 +78,9 @@ def getUserInfo(req):
     reqBody = json.loads(req.body)
     print(reqBody)
     return JsonResponse({
-        "status": "getUserInfo"
+        "message": "user_info",
+        "payload": {}
     }, safe=False)
-
-
-
 
 
 def registerHospital(req):
@@ -89,29 +95,35 @@ def registerHospital(req):
 
     if (User.objects.filter(username=username).exists()):
         return JsonResponse({
-            "status": "user_already_exists"
+            "message": "username_already_exists",
+            "payload": {}
         }, safe=False)
 
     if (User.objects.filter(email=email).exists()):
         return JsonResponse({
-            "status": "email_already_exists"
+            "message": "email_already_exists",
+            "payload": {}
         }, safe=False)
 
     try:
         usr = User.objects.create_user(username=username, email=email, password=password)
-        pro = hospitalProfile(username=usr, Phone_Number=phone, Address=add, ESTD=estd,Pan_Number=pan)
+        pro = hospitalProfile(username=usr, Phone_Number=phone, Address=add, ESTD=estd, Pan_Number=pan)
         pro.save()
         hospitalProfile.refresh_from_db(pro)
 
         return JsonResponse({
-            "status": "profile_saved",
+            "message": "profile_saved",
+            "payload": {}
         }, safe=False)
 
     except Exception as e:
         return JsonResponse({
-            "status": "something_went_wrong",
-            "Error": str(e)
+            "message": "something_went_wrong",
+            "payload": {
+                "Error": str(e)
+            }
         }, safe=False)
+
 
 def loginHospital(req):
     reqBody = json.loads(req.body)
@@ -122,18 +134,21 @@ def loginHospital(req):
 
     if not (hospitalProfile.objects.filter(username=user).exists()):
         return JsonResponse({
-            "status": "Insufficient Permission"
+            "message": "Insufficient Permission",
+            "payload": {}
         }, safe=False)
 
     if user is not None:
         login(req, user)
         return JsonResponse({
-            "status": "logged_in"
+            "message": "logged_in",
+            "payload": {}
         }, safe=False)
 
     else:
         return JsonResponse({
-            "status": "something_went_wrong"
+            "message": "username_does_not_exists",
+            "payload": {}
         }, safe=False)
 
 
@@ -142,5 +157,6 @@ def getHospitalInfo(req):
     reqBody = json.loads(req.body)
     print(reqBody)
     return JsonResponse({
-        "status": "getUserInfo"
+        "message": "user_info",
+        "payload": {}
     }, safe=False)
