@@ -1,9 +1,17 @@
 import pandas as pd
+import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from covidResponse.settings import MEDIA_ROOT
+
 def readData():
-    return pd.read_csv('dataset.csv')
+
+    data_loc=os.path.join(MEDIA_ROOT,'data')
+    data_loc += "\dataset.csv"
+    # print('url', data_loc)
+    return pd.read_csv(data_loc)
+    # return pd.read_csv('dataset.csv')
 
 
 
