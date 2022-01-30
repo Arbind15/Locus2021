@@ -3,7 +3,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 def readData():
-    return pd.read_csv(r'covid_detection\\data\\dataset.csv')
+    return pd.read_csv('dataset.csv')
 
 
 
