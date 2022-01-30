@@ -6,12 +6,9 @@ from sklearn.linear_model import LogisticRegression
 from covidResponse.settings import MEDIA_ROOT
 
 def readData():
-
     data_loc=os.path.join(MEDIA_ROOT,'data')
-    data_loc += "\dataset.csv"
-    # print('url', data_loc)
+    data_loc += "/dataset.csv"
     return pd.read_csv(data_loc)
-    # return pd.read_csv('dataset.csv')
 
 
 
