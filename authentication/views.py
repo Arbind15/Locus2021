@@ -51,19 +51,24 @@ def loginUser(req):
 
     user = authenticate(username=username, password=password)
 
-    if not (Profile.objects.filter(username=user).exists()):
-        return JsonResponse({
-            "message": "Insufficient Permission",
-            "payload": {}
-        }, safe=False)
 
     if user is not None:
+        if not (Profile.objects.filter(username=user).exists()):
+            return JsonResponse({
+                "message": "Insufficient Permission",
+                "payload": {}
+            }, safe=False)
+
         login(req, user)
+
+        pro=Profile.objects.get(username=user)
 
         return JsonResponse({
             "message": "logged_in",
             "payload": {
-
+                "username": user.username,
+                "dob": pro.DOB,
+                "ctzn_id": pro.Citizenship_Number
             }
         }, safe=False)
 
