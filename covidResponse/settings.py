@@ -18,7 +18,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['locus2021.herokuapp.com','127.0.0.1','locus2021.azurewebsites.net']
 
-CSRF_TRUSTED_ORIGINS=['https://locus2021.azurewebsites.net']
+CSRF_TRUSTED_ORIGINS=['https://*.azurewebsites.net']
 # Application definition
 
 INSTALLED_APPS = [
