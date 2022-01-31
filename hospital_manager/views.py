@@ -5,23 +5,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import math
-
-initial = {
-    'sunasri': 5000,
-    'morang': 100,
-    'jhapa': 20,
-    'illam': 35000,
-    'dolpa': 10540,
-    'manang': 500000,
-}
-finanal = {
-    'sunasri': 200,
-    'morang': 1000,
-    'jhapa': 19,
-    'illam': 3500,
-    'dolpa': 1000540,
-    'manang': 50,
-}
+import json, os, datetime
+from covidResponse.settings import MEDIA_ROOT
 
 
 def CalculateInfectionRate(initial_infect, final_infect):
@@ -99,6 +84,16 @@ def DistributVaccine(request):
     rate_parm = float(request.POST.get('rate_parm'))
     ratio_parm = float(request.POST.get('ratio_parm'))
 
+    data_loc = os.path.join(MEDIA_ROOT, 'data')
+
+    with open(data_loc + '/initialInfPop.json', 'r') as openfile:
+        # Reading from json file
+        initial = json.load(openfile)
+
+    with open(data_loc + '/finalInfPop.json', 'r') as openfile:
+        # Reading from json file
+        finanal = json.load(openfile)
+
     inf_rate = CalculateInfectionRate(initial, finanal)
     assigned_vac = CalculateDistributeVaccine(inf_rate, finanal, vac_num, rate_parm,
                                               ratio_parm)
@@ -115,9 +110,23 @@ def AssigneVaccine(request):
     rate_parm = float(request.POST.get('rate_parm'))
     ratio_parm = float(request.POST.get('ratio_parm'))
 
+    data_loc = os.path.join(MEDIA_ROOT, 'data')
+
+    with open(data_loc + '/initialInfPop.json', 'r') as openfile:
+        # Reading from json file
+        initial = json.load(openfile)
+
+    with open(data_loc + '/finalInfPop.json', 'r') as openfile:
+        # Reading from json file
+        finanal = json.load(openfile)
+
     inf_rate = CalculateInfectionRate(initial, finanal)
     assigned_vac = CalculateDistributeVaccine(inf_rate, finanal, vac_num, rate_parm,
                                               ratio_parm)
+
+    json_object = json.dumps(assigned_vac, indent=4)
+    with open(data_loc + "/ass(" + str(datetime.datetime.now()).replace(':', '-') + ").json", "w") as outfile:
+        outfile.write(json_object)
     contex['mssg'] = "Vaccine Assigned!!!"
     return render(request, 'hospital_manager/message_div.html', contex)
 
