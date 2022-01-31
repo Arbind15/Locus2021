@@ -1,0 +1,38 @@
+{% load static %}
+<div>
+    <table class="assigned_vacc_tabble">
+        <tr>
+            <th>
+                District
+            </th>
+            <th>
+                Initial Infection
+            </th>
+            <th>
+                Final Infection(After a week)
+            </th>
+            <th>
+                Infection Rate
+            </th>
+            <th>
+                Assigned Vaccine(s)
+            </th>
+        </tr>
+        {% for assigned_vacc in assigned_vaccs %}
+            <tr>
+                <td>{{ assigned_vacc.0 }}</td>
+                <td>{{ assigned_vacc.1 }}</td>
+                <td> {{ assigned_vacc.2 }}</td>
+                <td>{{ assigned_vacc.3 }}</td>
+                <td>{{ assigned_vacc.4 }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div style="margin-top: 10px;display: flex;flex-direction: row;justify-content: end">
+{#        <button class="lgn_btn" onclick="Assign('{{ assigned_vaccs }}')" >Assign</button>#}
+        <button class="lgn_btn" id="assign_btn" onclick="Assign()" >Assign</button>
+    </div>
+</div>
+
+

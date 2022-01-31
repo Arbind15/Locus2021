@@ -1,0 +1,43 @@
+{% load static %}
+<div>
+    <table class="assigned_vacc_tabble" style="margin-top: 20px">
+        <tr>
+            <th>
+                S.No.
+            </th>
+            <th>
+                Username
+            </th>
+            <th>
+                Citizenship Id No.
+            </th>
+            <th>
+                DOB
+            </th>
+            <th>
+                Joined On
+            </th>
+            <th>
+                Remarks
+            </th>
+            <th>
+                Actions
+            </th>
+        </tr>
+        {% for profile in profiles %}
+            <tr>
+                <td>{{ profile.0 }}</td>
+                <td>{{ profile.1.username.username }}</td>
+                <td> {{ profile.1.Citizenship_Number }}</td>
+                <td>{{ profile.1.DOB }}</td>
+                <td>{{ profile.1.Date }}</td>
+                <td>{{ profile.1.Remarks }}</td>
+                <td>
+                    <button type="button" class="btn btn-warning">Edit</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+

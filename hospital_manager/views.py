@@ -1,6 +1,57 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from authentication.models import Profile, hospitalProfile
+from django.contrib.auth import login, authenticate, logout
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+import math
+
+initial = {
+    'sunasri': 5000,
+    'morang': 100,
+    'jhapa': 20,
+    'illam': 35000,
+    'dolpa': 10540,
+    'manang': 500000,
+}
+finanal = {
+    'sunasri': 200,
+    'morang': 1000,
+    'jhapa': 19,
+    'illam': 3500,
+    'dolpa': 1000540,
+    'manang': 50,
+}
+
+
+def CalculateInfectionRate(initial_infect, final_infect):
+    d = {}
+    for lbl1, num1, lbl2, num2 in zip(initial_infect.keys(), initial_infect.values(), final_infect.keys(),
+                                      final_infect.values()):
+        diff = num2 - num1
+        if diff < 0:
+            diff = 0
+        d[lbl1] = diff
+    return d
+
+
+def CalculateDistributeVaccine(infectionRate, finale, totalVaccine, rateParm, ratioParm):
+    d = {}
+    assigned_vaccine = {}
+
+    final_sum = 0
+    for lbl, num1, num2 in zip(infectionRate.keys(), infectionRate.values(), finale.values()):
+        nn = num1 * rateParm + num2 * ratioParm
+        final_sum += nn
+        d[lbl] = nn
+
+    for lbl, num in zip(d.keys(), d.values()):
+        ratio = num / final_sum
+        d[lbl] = ratio
+        assigned_vaccine[lbl] = math.floor(ratio * totalVaccine)
+
+    return assigned_vaccine
+
 
 def Temp(req):
     print(req.body)
@@ -9,3 +60,91 @@ def Temp(req):
         "message": "Hospital!",
         "payload": {}
     }, safe=False)
+
+
+def Login(request):
+    contex = {}
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            if not (hospitalProfile.objects.filter(username=user).exists()):
+                messages.error(request, f'Insufficient Permission!')
+                return render(request, 'hospital_manager/login.html')
+
+            login(request, user)
+
+            return redirect('home')
+
+        else:
+            messages.error(request, f'Username does not exists!')
+            return render(request, 'hospital_manager/login.html')
+
+    return render(request, 'hospital_manager/login.html', contex)
+
+
+@login_required(login_url='login')
+def Home(request):
+    contex = {}
+    return render(request, 'hospital_manager/home.html', contex)
+
+
+@login_required(login_url='login')
+def DistributVaccine(request):
+    contex = {}
+    vac_code = request.POST.get('vac_code')
+    vac_num = int(request.POST.get('vac_num'))
+    rate_parm = float(request.POST.get('rate_parm'))
+    ratio_parm = float(request.POST.get('ratio_parm'))
+
+    inf_rate = CalculateInfectionRate(initial, finanal)
+    assigned_vac = CalculateDistributeVaccine(inf_rate, finanal, vac_num, rate_parm,
+                                              ratio_parm)
+    contex['assigned_vaccs'] = zip(assigned_vac.keys(), initial.values(), finanal.values(), inf_rate.values(),
+                                   assigned_vac.values())
+    return render(request, 'hospital_manager/vacc_assigned_list.html', contex)
+
+
+@login_required(login_url='login')
+def AssigneVaccine(request):
+    contex = {}
+    vac_code = request.POST.get('vac_code')
+    vac_num = int(request.POST.get('vac_num'))
+    rate_parm = float(request.POST.get('rate_parm'))
+    ratio_parm = float(request.POST.get('ratio_parm'))
+
+    inf_rate = CalculateInfectionRate(initial, finanal)
+    assigned_vac = CalculateDistributeVaccine(inf_rate, finanal, vac_num, rate_parm,
+                                              ratio_parm)
+    contex['mssg'] = "Vaccine Assigned!!!"
+    return render(request, 'hospital_manager/message_div.html', contex)
+
+
+@login_required(login_url='login')
+def SendDistibuteDiv(request):
+    contex = {}
+    return render(request, 'hospital_manager/distributeDiv.html', contex)
+
+
+@login_required(login_url='login')
+def SendQueueDiv(request):
+    contex = {}
+    return render(request, 'hospital_manager/queueDiv.html', contex)
+
+
+@login_required(login_url='login')
+def ViewUsers(request):
+    contex = {}
+    users_pro = Profile.objects.all()
+    contex['profiles'] = enumerate(users_pro, start=1)
+    return render(request, 'hospital_manager/userList.html', contex)
+
+
+@login_required(login_url='login')
+def ViewHospitals(request):
+    contex = {}
+    pro = hospitalProfile.objects.all()
+    contex['profiles'] = enumerate(pro, start=1)
+    return render(request, 'hospital_manager/hospitalList.html', contex)

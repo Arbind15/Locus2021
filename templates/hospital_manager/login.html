@@ -1,0 +1,72 @@
+{% load static %}
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'hospital_manager/stylesheet.css' %}">
+    <title>Login | CovidResponse </title>
+</head>
+<body>
+<div class="main_div">
+    <div class="login_form">
+        <div class="card login_card">
+            <div class="card-body">
+                <div class="login_main_lable">
+                    CovidResponse
+                </div>
+                {% if messages %}
+                    <div class="alert alert-danger">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <form method="POST" enctype="multipart/form-data" role="form">
+                    {% csrf_token %}
+                    <table>
+                        <tr>
+                            <td class="lgn_lbl_txt">
+                                <label >Username:</label>
+                            </td>
+                            <td>
+                                <input required type="text" name="username" class="lgn_inpt">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="lgn_lbl_txt">
+                                <label >Password:</label>
+                            </td>
+                            <td>
+                                <input required type="password" id="password" name="password" class="lgn_inpt">
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="btn_coll_div">
+                        <button type="reset" class="lgn_btn">Cancel</button>
+                        <button type="submit" id="login_btn" class="lgn_btn">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="{% static 'hospital_manager/javascripts.js' %}"></script>
+</body>
+</html>
+

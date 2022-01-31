@@ -7,76 +7,87 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def registerUser(req):
-    reqBody = json.loads(req.body)
-    username = reqBody['username']
-    password = reqBody['password']
-    dob = reqBody['dob']
-    ctzn = reqBody['ctzn_id']
+    if req.method == 'POST':
+        reqBody = json.loads(req.body)
+        username = reqBody['username']
+        password = reqBody['password']
+        dob = reqBody['dob']
+        ctzn = reqBody['ctzn_id']
 
-    if (User.objects.filter(username=username).exists()):
-        return JsonResponse({
-            "message": "username_already_exists",
-            "payload": {}
-        }, safe=False)
-
-    if (Profile.objects.filter(Citizenship_Number=ctzn).exists()):
-        return JsonResponse({
-            "message": "citizenship_num_already_exists",
-            "payload": {}
-        }, safe=False)
-
-    try:
-        usr = User.objects.create_user(username=username, email='', password=password)
-        pro = Profile(username=usr, DOB=dob, Citizenship_Number=ctzn)
-        pro.save()
-        Profile.refresh_from_db(pro)
-
-        return JsonResponse({
-            "message": "profile_saved",
-            "payload": {}
-        }, safe=False)
-
-    except Exception as e:
-        return JsonResponse({
-            "message": "something_went_wrong",
-            "payload": {
-                "Error": str(e)
-            }
-        }, safe=False)
-
-@csrf_exempt
-def loginUser(req):
-    reqBody = json.loads(req.body)
-    username = reqBody['username']
-    password = reqBody['password']
-
-    user = authenticate(username=username, password=password)
-
-    if user is not None:
-        if not (Profile.objects.filter(username=user).exists()):
+        if (User.objects.filter(username=username).exists()):
             return JsonResponse({
-                "message": "Insufficient Permission",
+                "message": "username_already_exists",
                 "payload": {}
             }, safe=False)
 
-        login(req, user)
+        if (Profile.objects.filter(Citizenship_Number=ctzn).exists()):
+            return JsonResponse({
+                "message": "citizenship_num_already_exists",
+                "payload": {}
+            }, safe=False)
 
-        pro = Profile.objects.get(username=user)
+        try:
+            usr = User.objects.create_user(username=username, email='', password=password)
+            pro = Profile(username=usr, DOB=dob, Citizenship_Number=ctzn)
+            pro.save()
+            Profile.refresh_from_db(pro)
 
-        return JsonResponse({
-            "message": "logged_in",
-            "payload": {
-                "username": user.username,
-                "dob": pro.DOB,
-                "ctzn_id": pro.Citizenship_Number
-            }
-        }, safe=False)
+            return JsonResponse({
+                "message": "profile_saved",
+                "payload": {}
+            }, safe=False)
 
-    else:
-        return JsonResponse({
-            "message": "username_does_not_exists",
-            "payload": {}
-        }, safe=False)
+        except Exception as e:
+            return JsonResponse({
+                "message": "something_went_wrong",
+                "payload": {
+                    "Error": str(e)
+                }
+            }, safe=False)
+
+    return JsonResponse({
+        "message": "forbidden",
+        "payload": {}
+    }, safe=False)
+
+@csrf_exempt
+def loginUser(req):
+    if req.method == 'POST':
+        reqBody = json.loads(req.body)
+        username = reqBody['username']
+        password = reqBody['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            if not (Profile.objects.filter(username=user).exists()):
+                return JsonResponse({
+                    "message": "Insufficient Permission",
+                    "payload": {}
+                }, safe=False)
+
+            login(req, user)
+
+            pro = Profile.objects.get(username=user)
+
+            return JsonResponse({
+                "message": "logged_in",
+                "payload": {
+                    "username": user.username,
+                    "dob": pro.DOB,
+                    "ctzn_id": pro.Citizenship_Number
+                }
+            }, safe=False)
+
+        else:
+            return JsonResponse({
+                "message": "username_does_not_exists",
+                "payload": {}
+            }, safe=False)
+    return JsonResponse({
+        "message": "forbidden",
+        "payload": {}
+    }, safe=False)
 
 
 def getUserInfo(req):

@@ -1,0 +1,47 @@
+{% load static %}
+
+<div class="distibute_div">
+    <div>
+        <table>
+            <tr>
+                <td>
+                    <label>Vaccine Code:</label>
+                </td>
+                <td>
+                    <input name="vac_code" , id="vac_code">
+                </td>
+            <tr>
+                <td>
+                    <label>Total Vaccine</label>
+                </td>
+                <td>
+                    <input name="vac_num" , id="vac_num">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>Rate Parameter:</label>
+                </td>
+                <td>
+                    <input name="rate_parm" , id="rate_parm">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>Ratio Parameter:</label>
+                </td>
+                <td>
+                    <input name="ratio_parm" , id="ratio_parm">
+                </td>
+            </tr>
+        </table>
+        <div class="btn_coll_div">
+            <button onclick="Cancel()" class="lgn_btn">Cancel</button>
+            <button onclick="Distribute()" class="lgn_btn">Distribute</button>
+        </div>
+    </div>
+
+</div>
+<div id="assigned_list" class="distibute_div">
+
+</div>
