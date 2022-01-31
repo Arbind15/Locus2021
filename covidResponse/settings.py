@@ -15,7 +15,8 @@ SECRET_KEY = 'django-insecure-cc1jurap%!cmg_lxnw7ax#-uuo_#z&f#y5ef++t--q3s&_(z)r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['locus2021.herokuapp.com','127.0.0.1','locus2021.azurewebsites.net']
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['locus2021.herokuapp.com','127.0.0.1','locus2021.azurewebsites.net']
 
 
 # Application definition
