@@ -110,11 +110,32 @@ function FetchQueueDiv() {
     xhttp.open("GET", url, true);
     xhttp.send();
 }
-function UpdateQueue(){
-    alert('update')
+
+function UpdateQueue() {
+    var date = document.getElementById('vac_num').value;
+    var per = document.getElementById('ratio_parm').value;
+    var div = document.getElementById('action_div');
+
+    var data = new FormData();
+    data.append('date', date);
+    data.append('per', per);
+
+    var xhttp = new XMLHttpRequest();
+    var url = '/hos/fetchqueuediv/';
+    var csrftoken = getCookie('csrftoken');
+
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            var rtxt = (xhttp.responseText);
+            div.innerHTML = rtxt;
+        }
+    };
+    xhttp.open("post", url, true);
+    xhttp.setRequestHeader("X-CSRFToken", csrftoken);
+    xhttp.send(data);
 }
 
-function FetchUsersDiv(){
+function FetchUsersDiv() {
     var div = document.getElementById('action_div');
     div.innerHTML = 'Loading...'
 
@@ -130,12 +151,28 @@ function FetchUsersDiv(){
     xhttp.send();
 }
 
-function FetchHospitalsDiv(){
+function FetchHospitalsDiv() {
     var div = document.getElementById('action_div');
     div.innerHTML = 'Loading...'
 
     var xhttp = new XMLHttpRequest();
     var url = '/hos/fetchhospitalsdiv';
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            var rtxt = (xhttp.responseText);
+            div.innerHTML = rtxt;
+        }
+    };
+    xhttp.open("GET", url, true);
+    xhttp.send();
+}
+
+function RegisterHospital() {
+    var div = document.getElementById('action_div');
+    div.innerHTML = 'Registering...'
+
+    var xhttp = new XMLHttpRequest();
+    var url = '/hos/registerhospital';
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             var rtxt = (xhttp.responseText);

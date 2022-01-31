@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import json
 from django.http import HttpResponse, JsonResponse
-from .models import Profile, hospitalProfile
+from .models import userProfile, hospitalProfile,userStatus
 from django.contrib.auth import login, authenticate, logout
 from django.views.decorators.csrf import csrf_exempt
 
@@ -20,7 +20,7 @@ def registerUser(req):
                 "payload": {}
             }, safe=False)
 
-        if (Profile.objects.filter(Citizenship_Number=ctzn).exists()):
+        if (userProfile.objects.filter(Citizenship_Number=ctzn).exists()):
             return JsonResponse({
                 "message": "citizenship_num_already_exists",
                 "payload": {}
@@ -28,9 +28,12 @@ def registerUser(req):
 
         try:
             usr = User.objects.create_user(username=username, email='', password=password)
-            pro = Profile(username=usr, DOB=dob, Citizenship_Number=ctzn)
+            pro = userProfile(username=usr, DOB=dob, Citizenship_Number=ctzn)
             pro.save()
-            Profile.refresh_from_db(pro)
+            userProfile.refresh_from_db(pro)
+            stats=userStatus(username=usr)
+            stats.save()
+            userStatus.refresh_from_db(stats)
 
             return JsonResponse({
                 "message": "profile_saved",
@@ -60,7 +63,7 @@ def loginUser(req):
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            if not (Profile.objects.filter(username=user).exists()):
+            if not (userProfile.objects.filter(username=user).exists()):
                 return JsonResponse({
                     "message": "Insufficient Permission",
                     "payload": {}
@@ -68,7 +71,7 @@ def loginUser(req):
 
             login(req, user)
 
-            pro = Profile.objects.get(username=user)
+            pro = userProfile.objects.get(username=user)
 
             return JsonResponse({
                 "message": "logged_in",
@@ -89,7 +92,7 @@ def loginUser(req):
         "payload": {}
     }, safe=False)
 
-
+@csrf_exempt
 def getUserInfo(req):
     print(req.body)
     reqBody = json.loads(req.body)
@@ -99,16 +102,13 @@ def getUserInfo(req):
         "payload": {}
     }, safe=False)
 
-
+@csrf_exempt
 def registerHospital(req):
     reqBody = json.loads(req.body)
     username = reqBody['username']
     password = reqBody['password']
-    email = reqBody['email']
     phone = reqBody['phone']
-    estd = reqBody['estd']
     add = reqBody['address']
-    pan = reqBody['pan']
 
     if (User.objects.filter(username=username).exists()):
         return JsonResponse({
@@ -116,15 +116,9 @@ def registerHospital(req):
             "payload": {}
         }, safe=False)
 
-    if (User.objects.filter(email=email).exists()):
-        return JsonResponse({
-            "message": "email_already_exists",
-            "payload": {}
-        }, safe=False)
-
     try:
-        usr = User.objects.create_user(username=username, email=email, password=password)
-        pro = hospitalProfile(username=usr, Phone_Number=phone, Address=add, ESTD=estd, Pan_Number=pan)
+        usr = User.objects.create_user(username=username, email='', password=password)
+        pro = hospitalProfile(username=usr, Phone_Number=phone, Address=add)
         pro.save()
         hospitalProfile.refresh_from_db(pro)
 
@@ -141,7 +135,7 @@ def registerHospital(req):
             }
         }, safe=False)
 
-
+@csrf_exempt
 def loginHospital(req):
     reqBody = json.loads(req.body)
     username = reqBody['username']
@@ -149,13 +143,13 @@ def loginHospital(req):
 
     user = authenticate(username=username, password=password)
 
-    if not (hospitalProfile.objects.filter(username=user).exists()):
-        return JsonResponse({
-            "message": "Insufficient Permission",
-            "payload": {}
-        }, safe=False)
-
     if user is not None:
+        if not (hospitalProfile.objects.filter(username=user).exists()):
+            return JsonResponse({
+                "message": "Insufficient Permission",
+                "payload": {}
+            }, safe=False)
+
         login(req, user)
         return JsonResponse({
             "message": "logged_in",
@@ -168,7 +162,7 @@ def loginHospital(req):
             "payload": {}
         }, safe=False)
 
-
+@csrf_exempt
 def getHospitalInfo(req):
     print(req.body)
     reqBody = json.loads(req.body)

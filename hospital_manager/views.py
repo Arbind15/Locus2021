@@ -1,13 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
-from authentication.models import Profile, hospitalProfile
+from authentication.models import userProfile, hospitalProfile, adminProfile,hospitalStatus
+from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import math
 import json, os, datetime
 from covidResponse.settings import MEDIA_ROOT
-
+from scheduler.views import  scheduler
 
 def CalculateInfectionRate(initial_infect, final_infect):
     d = {}
@@ -18,7 +19,6 @@ def CalculateInfectionRate(initial_infect, final_infect):
             diff = 0
         d[lbl1] = diff
     return d
-
 
 def CalculateDistributeVaccine(infectionRate, finale, totalVaccine, rateParm, ratioParm):
     d = {}
@@ -55,9 +55,10 @@ def Login(request):
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            if not (hospitalProfile.objects.filter(username=user).exists()):
-                messages.error(request, f'Insufficient Permission!')
-                return render(request, 'hospital_manager/login.html')
+            if not (adminProfile.objects.filter(username=user).exists()):
+                if not user.is_staff == True:
+                    messages.error(request, f'Insufficient Permission!')
+                    return render(request, 'hospital_manager/login.html')
 
             login(request, user)
 
@@ -127,6 +128,18 @@ def AssigneVaccine(request):
     json_object = json.dumps(assigned_vac, indent=4)
     with open(data_loc + "/ass(" + str(datetime.datetime.now()).replace(':', '-') + ").json", "w") as outfile:
         outfile.write(json_object)
+
+    for lbl, num in zip(assigned_vac.keys(),assigned_vac.values()):
+        stats=hospitalStatus(username=User.objects.get(username=lbl),Vaccine_Code=vac_code,Total_Assigned_Vaccine=num)
+        stats.save()
+        hospitalStatus.refresh_from_db(stats)
+
+    # with open(data_loc+'/vacc_codes.json', 'r+') as file:
+    #     file_data = json.load(file)
+    #     file_data[vac_code]=''
+    #     file.seek(0)
+    #     json.dump(file_data, file, indent=4)
+
     contex['mssg'] = "Vaccine Assigned!!!"
     return render(request, 'hospital_manager/message_div.html', contex)
 
@@ -140,13 +153,26 @@ def SendDistibuteDiv(request):
 @login_required(login_url='login')
 def SendQueueDiv(request):
     contex = {}
+
+    if request.method == 'POST':
+        per_old = request.POST.get('per')
+        date = request.POST.get('date')
+        data_loc = os.path.join(MEDIA_ROOT, 'data')
+        json_object = json.dumps({"old percentage": per_old, "date": date}, indent=4)
+        with open(data_loc + "/QueuingParms.json", "w") as outfile:
+            outfile.write(json_object)
+
+        contex['mssg'] = "Parameter Updated!!"
+
+        return render(request, 'hospital_manager/message_div.html', contex)
+
     return render(request, 'hospital_manager/queueDiv.html', contex)
 
 
 @login_required(login_url='login')
 def ViewUsers(request):
     contex = {}
-    users_pro = Profile.objects.all()
+    users_pro = userProfile.objects.all()
     contex['profiles'] = enumerate(users_pro, start=1)
     return render(request, 'hospital_manager/userList.html', contex)
 
@@ -157,3 +183,24 @@ def ViewHospitals(request):
     pro = hospitalProfile.objects.all()
     contex['profiles'] = enumerate(pro, start=1)
     return render(request, 'hospital_manager/hospitalList.html', contex)
+
+
+@login_required(login_url='login')
+def registerHospitalFromFile(request):
+    contex = {}
+    data_loc = os.path.join(MEDIA_ROOT, 'data')
+    with open(data_loc + '/initialInfPop.json', 'r') as openfile:
+        qParms = json.load(openfile)
+
+    # print(qParms.keys())
+    for lbl in qParms.keys():
+        try:
+            if not (User.objects.filter(username=lbl).exists()):
+                usr = User.objects.create_user(username=lbl, email='', password=str(lbl + '@123'))
+                pro = hospitalProfile(username=usr, Address=lbl)
+                pro.save()
+                hospitalProfile.refresh_from_db(pro)
+        except:
+            pass
+    contex['mssg'] = "Registration Done from District List!!!"
+    return render(request, 'hospital_manager/message_div.html', contex)

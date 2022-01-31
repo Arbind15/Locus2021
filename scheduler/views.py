@@ -1,6 +1,16 @@
 from django.shortcuts import render
+import json,os
 from django.http import HttpResponse, JsonResponse
+from authentication.models import userProfile, hospitalProfile, adminProfile,hospitalStatus
 from datetime import datetime, date, timedelta
+from covidResponse.settings import MEDIA_ROOT
+
+data_loc = os.path.join(MEDIA_ROOT, 'data')
+
+with open(data_loc + '/QueuingParms.json', 'r') as openfile:
+    qParms = json.load(openfile)
+
+old_per=qParms['old percentage']
 
 priority_1 = []
 priority_0 = []
@@ -23,23 +33,20 @@ class dictionary(dict):
     def add(self, key, value):
         self[key] = value
 
-
-def priority_assigner(age, health_status, identifier):
+def priority_assigner(dob, health_status, identifier):  # 2
+    d1 = datetime.strptime(dob, "%Y-%m-%d")
+    d2 = date.today()
+    d2 = datetime.strftime(d2, "%Y-%m-%d")
+    d2 = datetime.strptime(d2, "%Y-%m-%d")
+    age = abs((d2 - d1).years)
     if age > 60 or health_status is 1:
         priority_1.append(identifier)
     else:
         priority_0.append(identifier)
 
-
-def per_def(user_clearance):
-    if user_clearance == "L1":
-        percent_of_hri = input("Enter the percentage of old and high risk individuals")
-    else:
-        raise Exception("Forbidden")
-    return percent_of_hri
-
-
-def queue_generator(percent_of_hri, available_no_vaccine):
+def queue_generator(percent_of_hri, hospital_username):
+    hospital=hospitalStatus.objects.get(username=hospital_username)
+    available_no_vaccine=hospital.Total_Assigned_Vaccine
     total_registered = len(priority_1) + len(priority_0)
     no_of_hri = int((percent_of_hri / 100) * total_registered)
     no_of_general = available_no_vaccine - no_of_hri

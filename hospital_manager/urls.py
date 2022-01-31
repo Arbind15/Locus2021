@@ -12,4 +12,5 @@ urlpatterns = [
     path('fetchqueuediv/', views.SendQueueDiv, name='send_queue_div'),
     path('fetchuserdiv/', views.ViewUsers, name='send_user_div'),
     path('fetchhospitalsdiv/', views.ViewHospitals, name='send_hospital_div'),
+    path('registerhospital/', views.registerHospitalFromFile, name='register_hos_from_file'),
 ]
