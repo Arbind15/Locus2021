@@ -71,7 +71,8 @@ def loginUser(req):
             if not (userProfile.objects.filter(username=user).exists()):
                 return JsonResponse({
                     "message": "Insufficient Permission",
-                    "payload": {}
+                    "payload": {
+                    }
                 }, safe=False)
 
             login(req, user)
@@ -83,7 +84,8 @@ def loginUser(req):
                 "payload": {
                     "username": user.username,
                     "dob": pro.DOB,
-                    "ctzn_id": pro.Citizenship_Number
+                    "ctzn_id": pro.Citizenship_Number,
+                    'Access Level': 3
                 }
             }, safe=False)
 
@@ -161,7 +163,10 @@ def loginHospital(req):
         login(req, user)
         return JsonResponse({
             "message": "logged_in",
-            "payload": {}
+            "payload": {
+                "username": user.username,
+                'Access Level': 2
+            }
         }, safe=False)
 
     else:
