@@ -37,7 +37,6 @@ def CalculateDistributeVaccine(infectionRate, finale, totalVaccine, rateParm, ra
 
     return assigned_vaccine
 
-
 def Temp(req):
     print(req.body)
     # print(Profile.objects.get(pk=2))
@@ -106,42 +105,46 @@ def DistributVaccine(request):
 @login_required(login_url='login')
 def AssigneVaccine(request):
     contex = {}
-    vac_code = request.POST.get('vac_code')
-    vac_num = int(request.POST.get('vac_num'))
-    rate_parm = float(request.POST.get('rate_parm'))
-    ratio_parm = float(request.POST.get('ratio_parm'))
+    try:
+        vac_code = request.POST.get('vac_code')
+        vac_num = int(request.POST.get('vac_num'))
+        rate_parm = float(request.POST.get('rate_parm'))
+        ratio_parm = float(request.POST.get('ratio_parm'))
 
-    data_loc = os.path.join(MEDIA_ROOT, 'data')
+        data_loc = os.path.join(MEDIA_ROOT, 'data')
 
-    with open(data_loc + '/initialInfPop.json', 'r') as openfile:
-        # Reading from json file
-        initial = json.load(openfile)
+        with open(data_loc + '/initialInfPop.json', 'r') as openfile:
+            # Reading from json file
+            initial = json.load(openfile)
 
-    with open(data_loc + '/finalInfPop.json', 'r') as openfile:
-        # Reading from json file
-        finanal = json.load(openfile)
+        with open(data_loc + '/finalInfPop.json', 'r') as openfile:
+            # Reading from json file
+            finanal = json.load(openfile)
 
-    inf_rate = CalculateInfectionRate(initial, finanal)
-    assigned_vac = CalculateDistributeVaccine(inf_rate, finanal, vac_num, rate_parm,
-                                              ratio_parm)
+        inf_rate = CalculateInfectionRate(initial, finanal)
+        assigned_vac = CalculateDistributeVaccine(inf_rate, finanal, vac_num, rate_parm,
+                                                  ratio_parm)
 
-    json_object = json.dumps(assigned_vac, indent=4)
-    with open(data_loc + "/ass(" + str(datetime.datetime.now()).replace(':', '-') + ").json", "w") as outfile:
-        outfile.write(json_object)
+        json_object = json.dumps(assigned_vac, indent=4)
+        with open(data_loc + "/ass(" + str(datetime.datetime.now()).replace(':', '-') + ").json", "w") as outfile:
+            outfile.write(json_object)
 
-    for lbl, num in zip(assigned_vac.keys(),assigned_vac.values()):
-        stats=hospitalStatus(username=User.objects.get(username=lbl),Vaccine_Code=vac_code,Total_Assigned_Vaccine=num)
-        stats.save()
-        hospitalStatus.refresh_from_db(stats)
+        for lbl, num in zip(assigned_vac.keys(),assigned_vac.values()):
+            stats=hospitalStatus(username=User.objects.get(username=lbl),Vaccine_Code=vac_code,Total_Assigned_Vaccine=num)
+            stats.save()
+            hospitalStatus.refresh_from_db(stats)
 
-    # with open(data_loc+'/vacc_codes.json', 'r+') as file:
-    #     file_data = json.load(file)
-    #     file_data[vac_code]=''
-    #     file.seek(0)
-    #     json.dump(file_data, file, indent=4)
+        # with open(data_loc+'/vacc_codes.json', 'r+') as file:
+        #     file_data = json.load(file)
+        #     file_data[vac_code]=''
+        #     file.seek(0)
+        #     json.dump(file_data, file, indent=4)
 
-    contex['mssg'] = "Vaccine Assigned!!!"
-    return render(request, 'hospital_manager/message_div.html', contex)
+        return redirect('schedule')
+    except Exception as e:
+        contex['mssg'] = f"Something went wrong while Assigning vaccine to hospitals ({e})"
+        return render(request, 'hospital_manager/message_div.html', contex)
+
 
 
 @login_required(login_url='login')

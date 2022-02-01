@@ -6,7 +6,7 @@ from django.conf import settings
 urlpatterns = [
                   path("", include('covid_detection.urls')),
                   path('authentication/', include('authentication.urls')),
-                  path('schedule/', include('scheduler.urls')),
+                  path('scheduler/', include('scheduler.urls')),
                   path('messaging/', include('messenger.urls')),
                   path('hos/', include('hospital_manager.urls')),
                   path('admin/', admin.site.urls),

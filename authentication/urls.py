@@ -9,4 +9,6 @@ urlpatterns = [
     path('gethospitalinfo/', views.getHospitalInfo),
     path('loginhospital/', views.loginHospital),
     path('registerhospital/', views.registerHospital),
+    path('registervaccine/', views.registerForVaccine),
+    path('updatevaccinenum/', views.updateVaccineNumber),
 ]

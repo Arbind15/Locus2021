@@ -14,6 +14,7 @@ class userProfile(models.Model):
     # Profile_Picture = models.ImageField(default="default.jpg", upload_to='user_pics')
     # Citizen_Front = models.ImageField(default="default.jpg", upload_to='ctzn_pics')
     # Citizen_Rear = models.ImageField(default="default.jpg", upload_to='ctzn_pics')
+    Health_Stat = models.BooleanField(default=False)
     Remarks = models.TextField(max_length=100, default="")
 
     def __str__(self):
@@ -37,6 +38,7 @@ class userStatus(models.Model):
     First_Dose_Date = models.CharField(default='',max_length=100)
     Second_Dose_Date = models.CharField(default='',max_length=100)
     New_Vaccine_Request = models.BooleanField(default=False)
+    New_Vaccine_Location = models.CharField(default='',max_length=500)
     Current_PCR = models.BooleanField(default=False)
     Date = models.DateField(default=timezone.now())
     Remarks = models.TextField(max_length=100, default="")
