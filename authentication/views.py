@@ -32,7 +32,7 @@ def registerUser(req):
 
         try:
             usr = User.objects.create_user(username=username, email='', password=password)
-            pro = userProfile(username=usr, DOB=dob, Citizenship_Number=ctzn,Health_Stat=hri)
+            pro = userProfile(username=usr, DOB=dob, Citizenship_Number=ctzn, Health_Stat=hri)
             pro.save()
             userProfile.refresh_from_db(pro)
             stats = userStatus(username=usr)
@@ -209,7 +209,7 @@ def registerForVaccine(req):
         if (pre_stats.New_Vaccine_Request == 1):
             contex['message'] = f"Your vaccination locaction has been changed to: {add}"
         pro = userStatus(usr, New_Vaccine_Location=add, First_Dose_Date=first_dose, Second_Dose_Date=second_dose,
-                         Current_PCR=cur_pcr, New_Vaccine_Request=1)
+                         Current_PCR=cur_pcr, New_Vaccine_Request=1,Date=datetime.now())
         pro.save()
         hospitalProfile.refresh_from_db(pro)
 
@@ -253,6 +253,7 @@ def updateVaccineNumber(req):
             usrStat.Second_Dose_Date = str(timezone.now())
         usrStat.New_Vaccine_Request = 0
         usrStat.New_Vaccine_Location = ""
+        usrStat.Schedule_Stat = 0
         usrStat.save()
         userStatus.refresh_from_db(usrStat)
 

@@ -9,6 +9,9 @@ import math
 import json, os, datetime
 from covidResponse.settings import MEDIA_ROOT
 from scheduler.views import  scheduler
+from django.http import FileResponse
+from .dailyReportGenerator import generatePDF
+
 
 def CalculateInfectionRate(initial_infect, final_infect):
     d = {}
@@ -73,6 +76,8 @@ def Login(request):
 @login_required(login_url='login')
 def Home(request):
     contex = {}
+    if request.method=='POST':
+        return generatePDF()
     return render(request, 'hospital_manager/home.html', contex)
 
 
@@ -207,3 +212,9 @@ def registerHospitalFromFile(request):
             pass
     contex['mssg'] = "Registration Done from District List!!!"
     return render(request, 'hospital_manager/message_div.html', contex)
+
+
+@login_required(login_url='login')
+def generateDailyReport(request):
+    contex = {}
+    return FileResponse(open(MEDIA_ROOT+'/default.jpg','rb'),filename='default.jpg',as_attachment=True)

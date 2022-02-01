@@ -1,5 +1,4 @@
 import random
-
 from django.shortcuts import render
 import json, os
 from django.http import HttpResponse, JsonResponse
@@ -7,6 +6,7 @@ from authentication.models import userProfile, hospitalProfile, adminProfile, ho
 from datetime import datetime, date, timedelta
 from covidResponse.settings import MEDIA_ROOT
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
 # from hospital_manager.fileHandler import districts
 data_loc = os.path.join(MEDIA_ROOT, 'data')
@@ -20,6 +20,7 @@ vac_date = qParms['date']
 priority_1 = []
 priority_0 = []
 to_be_vaccinated = []
+un_vaccinated = []
 
 
 class dictionary(dict):
@@ -46,15 +47,22 @@ def priority_assigner(jsn_fil):
 
 
 def queue_generator(percent_of_hri, available_no_vaccine):
-    global to_be_vaccinated
+    global to_be_vaccinated, un_vaccinated
     registered_hri = len(priority_1)
     max_num_of_hri = int((percent_of_hri / 100) * available_no_vaccine)
-    if registered_hri<max_num_of_hri:
-        no_of_hri=registered_hri
+    if registered_hri < max_num_of_hri:
+        no_of_hri = registered_hri
     else:
-        no_of_hri=max_num_of_hri
+        no_of_hri = max_num_of_hri
     no_of_general = available_no_vaccine - no_of_hri
     to_be_vaccinated = priority_1[:no_of_hri] + priority_0[:no_of_general]
+    un_vaccinated = priority_1[no_of_hri:] + priority_0[no_of_general:]
+    for usr in to_be_vaccinated:
+        usr = User.objects.get(username=usr)
+        tmp = userStatus.objects.get(username=usr)
+        tmp.Schedule_Stat = 1
+        tmp.save()
+        userStatus.refresh_from_db(tmp)
 
 
 def scheduler(vaccination_date, users_parms, percent_of_hri, available_no_vaccine,
@@ -85,21 +93,22 @@ def scheduler(vaccination_date, users_parms, percent_of_hri, available_no_vaccin
     data_loc = os.path.join(MEDIA_ROOT, 'data')
     with open(data_loc + '/vaccine_Schedule/' + str(hospital_username) + '.json', "w") as outfile:
         outfile.write(json_object)
-    json_object=None
+    json_object = None
     return scheduled_dict
 
 
 # print(scheduler("2045-04-03", "2005-04-03",1,5,10,1230))
 @csrf_exempt
 def schedule(req):
-    contex={}
-    global priority_0,priority_1,to_be_vaccinated
+    contex = {}
+    global priority_0, priority_1, to_be_vaccinated, un_vaccinated
     try:
         hospitals = hospitalProfile.objects.all()
         for hospital in hospitals:
             user_parms = []
             users = userStatus.objects.filter(New_Vaccine_Location=hospital.Address).filter(
-                New_Vaccine_Request=1)
+                New_Vaccine_Request=1).filter(Schedule_Stat=0).order_by('Date')
+            # print(users)
             for user in users:
                 user_parms.append({
                     'dob': str(user.username.userprofile.DOB),
@@ -112,6 +121,7 @@ def schedule(req):
                       hospitalStatus.objects.get(username=hospital.username).Total_Assigned_Vaccine,
                       hospital.username.username)
             to_be_vaccinated = []
+            un_vaccinated = []
             priority_0 = []
             priority_1 = []
 

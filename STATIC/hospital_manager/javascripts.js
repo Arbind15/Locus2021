@@ -189,3 +189,37 @@ function Cancel() {
     document.getElementById('rate_parm').value = '';
     document.getElementById('ratio_parm').value = '';
 }
+
+// Function to download data to a file
+function download(data, filename, type) {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
+
+function GetDailyReport(){
+    var xhttp = new XMLHttpRequest();
+    var url = '/hos/dailyreport';
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            alert(xhttp.getResponseHeader('filename'))
+            // alert(xhttp.getAllResponseHeaders())
+            download(xhttp.response,xhttp.getResponseHeader('filename'),'.pdf')
+        }
+    };
+    xhttp.responseType='blob'
+    xhttp.open("GET", url, true);
+    xhttp.send();
+}

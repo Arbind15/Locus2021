@@ -2,6 +2,7 @@ from django.db import models
 import sqlite3, time
 from django.contrib.auth.models import User
 from PIL import Image
+import datetime
 from django.utils import timezone
 
 
@@ -40,7 +41,8 @@ class userStatus(models.Model):
     New_Vaccine_Request = models.BooleanField(default=False)
     New_Vaccine_Location = models.CharField(default='',max_length=500)
     Current_PCR = models.BooleanField(default=False)
-    Date = models.DateField(default=timezone.now())
+    Schedule_Stat=models.BooleanField(default=False)
+    Date = models.DateTimeField(default=datetime.datetime.now())
     Remarks = models.TextField(max_length=100, default="")
 
     def __str__(self):

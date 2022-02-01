@@ -13,4 +13,5 @@ urlpatterns = [
     path('fetchuserdiv/', views.ViewUsers, name='send_user_div'),
     path('fetchhospitalsdiv/', views.ViewHospitals, name='send_hospital_div'),
     path('registerhospital/', views.registerHospitalFromFile, name='register_hos_from_file'),
+    path('dailyreport/', views.generateDailyReport, name='daily_report'),
 ]
