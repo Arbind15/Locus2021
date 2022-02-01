@@ -96,7 +96,6 @@ def scheduler(vaccination_date, users_parms, percent_of_hri, available_no_vaccin
     json_object = None
     return scheduled_dict
 
-
 # print(scheduler("2045-04-03", "2005-04-03",1,5,10,1230))
 @csrf_exempt
 def schedule(req):
