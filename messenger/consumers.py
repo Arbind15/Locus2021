@@ -2,6 +2,8 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 import time
 from asgiref.sync import async_to_sync
+
+
 class ChatList(WebsocketConsumer):
     def connect(self):
         self.accept()
@@ -62,12 +64,12 @@ class ChatUpdatesTmp(WebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
 
-        # print(self.room_group_name)
+        # print(self.channel_layer)
         # # Join room group
-        # async_to_sync(self.channel_layer.group_add)(
-        #     self.room_group_name,
-        #     self.channel_name
-        # )
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
         self.accept()
 
     def disconnect(self, close_code):
@@ -80,6 +82,11 @@ class ChatUpdatesTmp(WebsocketConsumer):
             "hospital": text_data_json['hospital'],
             "content": text_data_json['content'],
         }
-        self.send(text_data=json.dumps({
-            'message': chat_unit
-        }))
+        # self.send(text_data=json.dumps({
+        #     'message': chat_unit
+        # }))
+
+
+    def send_update(self,event):
+        # print('here')
+        self.send(json.dumps(event))
