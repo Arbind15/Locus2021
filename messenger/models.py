@@ -25,6 +25,7 @@ class ChatBody(models.Model):
     Seen_Status = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         channel_layer = get_channel_layer()
         data = {
             "Sender": str(self.Sender),
@@ -40,7 +41,7 @@ class ChatBody(models.Model):
                 "value": data
             }
         )
-        super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f'{self.Chat.user.username}-{self.Chat.hospital.username}'

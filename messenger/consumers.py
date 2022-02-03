@@ -3,6 +3,8 @@ from channels.generic.websocket import WebsocketConsumer
 import time
 from asgiref.sync import async_to_sync
 from .models import Chat, ChatBody
+from django.contrib.auth.models import User
+
 
 class ChatList(WebsocketConsumer):
     def connect(self):
@@ -22,6 +24,7 @@ class ChatList(WebsocketConsumer):
             'message': text_data_json
         }))
 
+
 class ChatDetails(WebsocketConsumer):
     def connect(self):
         self.accept()
@@ -40,6 +43,7 @@ class ChatDetails(WebsocketConsumer):
             'message': text_data_json
         }))
 
+
 class ChatUpdates(WebsocketConsumer):
     def connect(self):
         self.accept()
@@ -49,8 +53,8 @@ class ChatUpdates(WebsocketConsumer):
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        chat_unit={
-            "user":text_data_json['user'],
+        chat_unit = {
+            "user": text_data_json['user'],
             "hospital": text_data_json['hospital'],
             "content": text_data_json['content'],
         }
@@ -76,19 +80,31 @@ class ChatUpdatesTmp(WebsocketConsumer):
         print("disconnected")
 
     def receive(self, text_data):
-        text_data_json = json.loads(text_data)
+        try:
+            text_data_json = json.loads(text_data)
+            user = text_data_json['user']
+            hospital = text_data_json['hospital']
+            content = text_data_json['content']
+            sender=text_data_json['sender']
+            hos_user = User.objects.get(username=hospital)
+            usr_user = User.objects.get(username=user)
+            sender = User.objects.get(username=sender)
 
-        user=text_data_json['user']
-        hospital= text_data_json['hospital']
-        content=text_data_json['content']
+            # self.send(text_data=json.dumps({
+            #     'message': chat_unit
+            # }))
+            chat = Chat.objects.get(user=usr_user, hospital=hos_user)
+            chat_body = ChatBody(Chat=chat, Chat_Content=content, Sender=sender)
+            chat_body.save()
+            ChatBody.refresh_from_db(chat_body)
+        except Exception as e:
+            self.send(json.dumps({
+                "Message": "Could not save message!",
+                "Payload": {
+                    "Error": str(e)
+                }
+            }))
 
-        # self.send(text_data=json.dumps({
-        #     'message': chat_unit
-        # }))
-
-        chat=Chat.objects.get(user=user,hospital=hospital)
-        chat_body=ChatBody(Chat=chat,Chat_Content=content)
-
-    def send_update(self,event):
+    def send_update(self, event):
         # print('here')
         self.send(json.dumps(event))

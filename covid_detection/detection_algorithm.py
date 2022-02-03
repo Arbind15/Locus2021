@@ -4,6 +4,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from covidResponse.settings import MEDIA_ROOT
+import pickle
 
 def readData():
     data_loc=os.path.join(MEDIA_ROOT,'data')
@@ -54,7 +55,7 @@ def removeUnwantedData(covid):
 def calculateInfectionProbability(covid, data):
     x=covid.drop('COVID-19',axis=1)
     y=covid['COVID-19']
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.30)
-    model = LogisticRegression()
-    model.fit(x_train, y_train)
+    # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.30)
+    data_loc = os.path.join(MEDIA_ROOT, 'data')
+    model=pickle.load(open(data_loc+'/finalized_model.sav', 'rb'))
     return  model.predict_proba([data])[0][1] * 100

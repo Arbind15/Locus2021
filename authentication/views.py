@@ -102,13 +102,32 @@ def loginUser(req):
 
 @csrf_exempt
 def getUserInfo(req):
-    print(req.body)
-    reqBody = json.loads(req.body)
-    print(reqBody)
-    return JsonResponse({
-        "message": "user_info",
-        "payload": {}
-    }, safe=False)
+    try:
+        reqBody = json.loads(req.body)
+        usr=User.objects.get(username=reqBody["username"])
+        pro=userProfile.objects.get(username=usr)
+        stat=userStatus.objects.get(username=usr)
+        return JsonResponse({
+            "message": "user_info",
+            "payload": {
+                'info':{
+                    'username':str(usr.username),
+                    'ctz_num':str(pro.Citizenship_Number),
+                    'dob':str(pro.DOB),
+                    'health_stat': str(pro.Health_Stat),
+                    'f_dose': str(stat.First_Dose_Date),
+                    's_dose': str(stat.Second_Dose_Date),
+                    'Schedule_Stat': str(stat.Schedule_Stat),
+                }
+            }
+        }, safe=False)
+    except Exception as e:
+        return JsonResponse({
+            "message": "can not fetch info",
+            "payload": {
+                "Error": str(e)
+            }
+        }, safe=False)
 
 
 @csrf_exempt
@@ -178,13 +197,31 @@ def loginHospital(req):
 
 @csrf_exempt
 def getHospitalInfo(req):
-    print(req.body)
-    reqBody = json.loads(req.body)
-    print(reqBody)
-    return JsonResponse({
-        "message": "user_info",
-        "payload": {}
-    }, safe=False)
+    try:
+        reqBody = json.loads(req.body)
+        usr = User.objects.get(username=reqBody["hospital"])
+        pro = hospitalProfile.objects.get(username=usr)
+        stat = hospitalStatus.objects.get(username=usr)
+        return JsonResponse({
+            "message": "hospital_info",
+            "payload": {
+                'info': {
+                    'hospital': str(usr.username),
+                    'phone_num': str(pro.Phone_Number),
+                    'address': str(pro.Address),
+                    'total_assigned_vacc': str(stat.Total_Assigned_Vaccine),
+                    'used_vac': str(stat.Used_Vaccine),
+                    'vac_code': str(stat.Vaccine_Code),
+                }
+            }
+        }, safe=False)
+    except Exception as e:
+        return JsonResponse({
+            "message": "can not fetch info",
+            "payload": {
+                "Error": str(e)
+            }
+        }, safe=False)
 
 
 @csrf_exempt
@@ -238,6 +275,7 @@ def updateVaccineNumber(req):
         reqBody = json.loads(req.body)
         hospital_username = reqBody['hos_username']
         user_username = reqBody['user_username']
+        flag = reqBody['flag']
 
         usrStat = userStatus.objects.get(username=User.objects.get(username=user_username))
         hosStat = hospitalStatus.objects.get(username=User.objects.get(username=hospital_username))
@@ -248,19 +286,26 @@ def updateVaccineNumber(req):
                 "payload": {}
             }, safe=False)
 
-        hosStat.Used_Vaccine = hosStat.Used_Vaccine + 1
-        hosStat.save()
-        hospitalStatus.refresh_from_db(hosStat)
 
-        if (usrStat.First_Dose_Date == ""):
-            usrStat.First_Dose_Date = str(timezone.now())
-        if (usrStat.Second_Dose_Date == ""):
-            usrStat.Second_Dose_Date = str(timezone.now())
-        usrStat.New_Vaccine_Request = 0
-        usrStat.New_Vaccine_Location = ""
-        usrStat.Schedule_Stat = 0
-        usrStat.save()
-        userStatus.refresh_from_db(usrStat)
+        if int(flag)==0:
+            usrStat.Schedule_Stat=0
+            usrStat.save()
+            userStatus.refresh_from_db(usrStat)
+
+        else:
+            hosStat.Used_Vaccine = hosStat.Used_Vaccine + 1
+            hosStat.save()
+            hospitalStatus.refresh_from_db(hosStat)
+
+            if (usrStat.First_Dose_Date == ""):
+                usrStat.First_Dose_Date = str(timezone.now())
+            if (usrStat.Second_Dose_Date == ""):
+                usrStat.Second_Dose_Date = str(timezone.now())
+            usrStat.New_Vaccine_Request = 0
+            usrStat.New_Vaccine_Location = ""
+            usrStat.Schedule_Stat = 0
+            usrStat.save()
+            userStatus.refresh_from_db(usrStat)
 
         return JsonResponse({
             "message": "Update successfully!",
@@ -274,3 +319,4 @@ def updateVaccineNumber(req):
                 "Error": str(e)
             }
         }, safe=False)
+

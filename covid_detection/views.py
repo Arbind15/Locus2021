@@ -11,7 +11,6 @@ from .detection_algorithm import readData, encodeData, removeUnwantedData, calcu
 def detectCovidInfectionProb(req):
     if req.method == 'POST':
         try:
-
             reqBody = json.loads(req.body)
             data = reqBody['data']
             covid = readData()

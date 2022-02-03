@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
-from authentication.models import userProfile, hospitalProfile, adminProfile,hospitalStatus
+from django.views.decorators.csrf import csrf_exempt
+
+from authentication.models import userProfile, hospitalProfile, adminProfile, hospitalStatus, userStatus
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
@@ -8,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 import math
 import json, os, datetime
 from covidResponse.settings import MEDIA_ROOT
-from scheduler.views import  scheduler
+from scheduler.views import scheduler
 from django.http import FileResponse
 from .dailyReportGenerator import generatePDF
 
@@ -22,6 +24,7 @@ def CalculateInfectionRate(initial_infect, final_infect):
             diff = 0
         d[lbl1] = diff
     return d
+
 
 def CalculateDistributeVaccine(infectionRate, finale, totalVaccine, rateParm, ratioParm):
     d = {}
@@ -39,6 +42,7 @@ def CalculateDistributeVaccine(infectionRate, finale, totalVaccine, rateParm, ra
         assigned_vaccine[lbl] = math.floor(ratio * totalVaccine)
 
     return assigned_vaccine
+
 
 def Temp(req):
     print(req.body)
@@ -76,7 +80,7 @@ def Login(request):
 @login_required(login_url='login')
 def Home(request):
     contex = {}
-    if request.method=='POST':
+    if request.method == 'POST':
         return generatePDF()
     return render(request, 'hospital_manager/home.html', contex)
 
@@ -134,8 +138,9 @@ def AssigneVaccine(request):
         with open(data_loc + "/ass(" + str(datetime.datetime.now()).replace(':', '-') + ").json", "w") as outfile:
             outfile.write(json_object)
 
-        for lbl, num in zip(assigned_vac.keys(),assigned_vac.values()):
-            stats=hospitalStatus(username=User.objects.get(username=lbl),Vaccine_Code=vac_code,Total_Assigned_Vaccine=num)
+        for lbl, num in zip(assigned_vac.keys(), assigned_vac.values()):
+            stats = hospitalStatus(username=User.objects.get(username=lbl), Vaccine_Code=vac_code,
+                                   Total_Assigned_Vaccine=num)
             stats.save()
             hospitalStatus.refresh_from_db(stats)
 
@@ -149,7 +154,6 @@ def AssigneVaccine(request):
     except Exception as e:
         contex['mssg'] = f"Something went wrong while Assigning vaccine to hospitals ({e})"
         return render(request, 'hospital_manager/message_div.html', contex)
-
 
 
 @login_required(login_url='login')
@@ -217,4 +221,51 @@ def registerHospitalFromFile(request):
 @login_required(login_url='login')
 def generateDailyReport(request):
     contex = {}
-    return FileResponse(open(MEDIA_ROOT+'/default.jpg','rb'),filename='default.jpg',as_attachment=True)
+    return FileResponse(open(MEDIA_ROOT + '/default.jpg', 'rb'), filename='default.jpg', as_attachment=True)
+
+
+@csrf_exempt
+def getHosspitalQueue(request):
+    try:
+        reqBody = json.loads(request.body)
+        hos = reqBody['hospital']
+        data_loc = os.path.join(MEDIA_ROOT, 'data')
+        with open(data_loc + '/vaccine_Schedule/' + str(hos) + '.json', 'r') as openfile:
+            qParms = json.load(openfile)
+        hos = User.objects.get(username=hos)
+        hosStat = hospitalStatus.objects.get(username=hos)
+        lst = []
+        for k, v in zip(qParms.keys(), qParms.values()):
+            usr = User.objects.get(username=str(k))
+            usrProfile = userProfile.objects.get(username=usr)
+            userStats = userStatus.objects.get(username=usr)
+            lst.append({
+                "username": str(usr.username),
+                "ctz_num": str(usrProfile.Citizenship_Number),
+                "hri": str(usrProfile.Health_Stat),
+                "vac_timeslot": str(v),
+                "dob": str(usrProfile.DOB),
+                "f_dose": str(userStats.First_Dose_Date),
+                "s_dose": str(userStats.Second_Dose_Date)
+            })
+
+        return JsonResponse({
+            "message": "hospital queue",
+            "payload": {
+                "reg_users": lst,
+                "hos_info": {
+                    "name": str(hosStat.username.username),
+                    "total_assigned_vacc": str(hosStat.Total_Assigned_Vaccine),
+                    "total_used_vacc": str(hosStat.Used_Vaccine),
+                    "vacc_code": str(hosStat.Vaccine_Code)
+                }
+            }
+        }, safe=False)
+
+    except Exception as e:
+        return JsonResponse({
+            "message": "error fetching queue",
+            "payload": {
+                "Error": str(e)
+            }
+        }, safe=False)
